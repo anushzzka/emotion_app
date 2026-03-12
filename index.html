@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glass-container">
+        <h1>✨ Emotion Explorer ✨</h1>
+        <form id="emotionForm">
+            <textarea id="textInput" placeholder="How are you feeling today? Pour your heart out here..." required></textarea>
+            <button type="submit">Analyze Emotion <i class="fas fa-magic"></i></button>
+        </form>
+        
+        <div id="resultBox" class="result">
+            <span id="emotionIcon" class="emotion-icon"><i class="fas fa-meh-blank"></i></span>
+            <div>
+                <span style="font-size: 14px; color: #666;">Predicted Emotion</span><br>
+                <strong id="predictionText">Neutral</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Transformers.js for browser-based Machine Learning -->
+    <script type="module">
+        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0';
+
+        const form = document.getElementById('emotionForm');
+        const submitBtn = form.querySelector('button');
+        const textArea = document.getElementById('textInput');
+        const resultBox = document.getElementById('resultBox');
+        const emotionIcon = document.getElementById('emotionIcon');
+        const predictionText = document.getElementById('predictionText');
+        const btnIcon = submitBtn.querySelector('i');
+
+        let classifier = null;
+
+        // Initialize the Hugging Face Pipeline
+        async function loadModel() {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Downloading AI Model (Once)... <i class="fas fa-spinner fa-spin"></i>';
+            try {
+                // Using a lightweight model fine-tuned for emotion detection
+                classifier = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-emotion');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Analyze Emotion <i class="fas fa-magic"></i>';
+            } catch (error) {
+                console.error("Error loading model:", error);
+                submitBtn.innerHTML = 'Error Loading Model <i class="fas fa-exclamation-triangle"></i>';
+            }
+        }
+
+        // Load the model immediately when page loads
+        loadModel();
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!classifier) {
+                 alert("Please wait for the AI model to finish downloading.");
+                 return;
+            }
+
+            const text = textArea.value.trim();
+            if (!text) return;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Analyzing... <i class="fas fa-circle-notch fa-spin"></i>';
+
+            try {
+                // Run inference
+                const result = await classifier(text);
+                const predictedEmotion = result[0].label; // Output varies by model, usually: anger, fear, joy, love, sadness, surprise
+                
+                // Map the model's output to our UI variables
+                let iconHtml = '<i class="fas fa-meh-blank"></i>';
+                let color = '#95a5a6';
+                let displayEmotion = predictedEmotion.toLowerCase();
+
+                // Map 'joy' and 'love' to 'happy' styles
+                if (['joy', 'love'].includes(displayEmotion)) {
+                    iconHtml = '<i class="fas fa-smile-beam"></i>';
+                    color = '#ffcc00';
+                    displayEmotion = displayEmotion === 'joy' ? 'happy' : displayEmotion;
+                } else if (displayEmotion === 'sadness') {
+                    iconHtml = '<i class="fas fa-sad-tear"></i>';
+                    color = '#3498db';
+                    displayEmotion = 'sad';
+                } else if (displayEmotion === 'anger') {
+                    iconHtml = '<i class="fas fa-angry"></i>';
+                    color = '#e74c3c';
+                } else if (displayEmotion === 'fear') {
+                    iconHtml = '<i class="fas fa-flushed"></i>';
+                    color = '#8e44ad';
+                } else if (displayEmotion === 'surprise') {
+                    iconHtml = '<i class="fas fa-surprise"></i>';
+                    color = '#f39c12';
+                }
+
+                // Updating UI
+                resultBox.style.display = 'flex';
+                emotionIcon.innerHTML = iconHtml;
+                emotionIcon.style.color = color;
+                resultBox.style.borderLeftColor = color;
+                
+                // Capitalize the emotion
+                predictionText.textContent = displayEmotion.charAt(0).toUpperCase() + displayEmotion.slice(1);
+
+                // Re-trigger animation
+                resultBox.style.animation = 'none';
+                resultBox.offsetHeight; /* trigger reflow */
+                resultBox.style.animation = null; 
+            } catch (err) {
+                 console.error("Inference error:", err);
+                 alert("Hmm, something went wrong while analyzing the emotion.");
+            } finally {
+                 // Restore button state
+                 submitBtn.disabled = false;
+                 submitBtn.innerHTML = 'Analyze Emotion <i class="fas fa-magic"></i>';
+            }
+        });
+    </script>
+</body>
+</html>
