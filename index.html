@@ -25,104 +25,74 @@
         </div>
     </div>
 
-    <!-- Include Transformers.js for browser-based Machine Learning -->
-    <script type="module">
-        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0';
-
-        const form = document.getElementById('emotionForm');
-        const submitBtn = form.querySelector('button');
-        const textArea = document.getElementById('textInput');
-        const resultBox = document.getElementById('resultBox');
-        const emotionIcon = document.getElementById('emotionIcon');
-        const predictionText = document.getElementById('predictionText');
-        const btnIcon = submitBtn.querySelector('i');
-
-        let classifier = null;
-
-        // Initialize the Hugging Face Pipeline
-        async function loadModel() {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Downloading AI Model (Once)... <i class="fas fa-spinner fa-spin"></i>';
-            try {
-                // Using a lightweight model fine-tuned for emotion detection
-                classifier = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-emotion');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = 'Analyze Emotion <i class="fas fa-magic"></i>';
-            } catch (error) {
-                console.error("Error loading model:", error);
-                submitBtn.innerHTML = 'Error Loading Model <i class="fas fa-exclamation-triangle"></i>';
-            }
-        }
-
-        // Load the model immediately when page loads
-        loadModel();
-
-        form.addEventListener('submit', async function(e) {
+    <script>
+        document.getElementById('emotionForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const text = document.getElementById('textInput').value.toLowerCase();
             
-            if (!classifier) {
-                 alert("Please wait for the AI model to finish downloading.");
-                 return;
-            }
+            // Keyword libraries for naive emotion detection
+            const happyWords = ['happy', 'joy', 'excited', 'grateful', 'great', 'awesome', 'good', 'love', 'wonderful', 'amazing', 'smile', 'glad', 'cheerful', 'delighted', 'pleased', 'thrilled', 'content', 'blissful', 'radiant', 'optimistic', 'perfect', 'fantastic', 'fabulous', 'superb', 'excellent', 'stellar', 'positive', 'enjoy', 'laugh', 'ecstatic', 'sunshine', 'bright', 'sweet'];
+            const sadWords = ['sad', 'depressed', 'down', 'crying', 'unhappy', 'bad', 'miserable', 'heartbreak', 'lonely', 'tear', 'sorrow', 'grief', 'upset', 'gloomy', 'melancholy', 'weep', 'cry', 'devastated', 'hopeless', 'despair', 'blue', 'hurt', 'pain', 'broken', 'disheartened', 'tragic', 'loss', 'mourn', 'pity', 'disappointed', 'regret'];
+            const angryWords = ['angry', 'mad', 'furious', 'hate', 'annoyed', 'frustrated', 'rage', 'irritated', 'livid', 'enraged', 'outraged', 'fuming', 'irate', 'hostile', 'bitter', 'resentful', 'infuriated', 'pissed', 'wrath', 'agitated', 'provoked', 'bothered', 'disgusted', 'foul', 'spiteful', 'vengeful', 'aggravated'];
+            const fearWords = ['scared', 'fear', 'terrified', 'anxious', 'nervous', 'worried', 'panic', 'afraid', 'frightened', 'horrified', 'dread', 'terror', 'petrified', 'creepy', 'spooky', 'alarmed', 'stressed', 'uneasy', 'apprehensive', 'intimidated', 'trembling', 'shaking', 'paranoid', 'phobia', 'tense', 'threatened'];
+            const surprisedWords = ['surprised', 'shocked', 'amazed', 'wow', 'unexpected', 'unbelievable', 'astonished', 'astounded', 'startled', 'stunned', 'speechless', 'gasp', 'unpredictable', 'sudden', 'mind-blowing', 'dumbfounded', 'flabbergasted', 'whoa', 'unreal', 'miracle', 'bizarre', 'crazy', 'insane'];
 
-            const text = textArea.value.trim();
-            if (!text) return;
+            const scores = { happy: 0, sad: 0, angry: 0, fear: 0, surprise: 0 };
 
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Analyzing... <i class="fas fa-circle-notch fa-spin"></i>';
+            happyWords.forEach(w => { if(text.includes(w)) scores.happy++; });
+            sadWords.forEach(w => { if(text.includes(w)) scores.sad++; });
+            angryWords.forEach(w => { if(text.includes(w)) scores.angry++; });
+            fearWords.forEach(w => { if(text.includes(w)) scores.fear++; });
+            surprisedWords.forEach(w => { if(text.includes(w)) scores.surprise++; });
 
-            try {
-                // Run inference
-                const result = await classifier(text);
-                const predictedEmotion = result[0].label; // Output varies by model, usually: anger, fear, joy, love, sadness, surprise
-                
-                // Map the model's output to our UI variables
-                let iconHtml = '<i class="fas fa-meh-blank"></i>';
-                let color = '#95a5a6';
-                let displayEmotion = predictedEmotion.toLowerCase();
+            let maxEmotion = 'neutral';
+            let maxScore = 0;
 
-                // Map 'joy' and 'love' to 'happy' styles
-                if (['joy', 'love'].includes(displayEmotion)) {
-                    iconHtml = '<i class="fas fa-smile-beam"></i>';
-                    color = '#ffcc00';
-                    displayEmotion = displayEmotion === 'joy' ? 'happy' : displayEmotion;
-                } else if (displayEmotion === 'sadness') {
-                    iconHtml = '<i class="fas fa-sad-tear"></i>';
-                    color = '#3498db';
-                    displayEmotion = 'sad';
-                } else if (displayEmotion === 'anger') {
-                    iconHtml = '<i class="fas fa-angry"></i>';
-                    color = '#e74c3c';
-                } else if (displayEmotion === 'fear') {
-                    iconHtml = '<i class="fas fa-flushed"></i>';
-                    color = '#8e44ad';
-                } else if (displayEmotion === 'surprise') {
-                    iconHtml = '<i class="fas fa-surprise"></i>';
-                    color = '#f39c12';
+            for (let emotion in scores) {
+                if (scores[emotion] > maxScore) {
+                    maxScore = scores[emotion];
+                    maxEmotion = emotion;
                 }
-
-                // Updating UI
-                resultBox.style.display = 'flex';
-                emotionIcon.innerHTML = iconHtml;
-                emotionIcon.style.color = color;
-                resultBox.style.borderLeftColor = color;
-                
-                // Capitalize the emotion
-                predictionText.textContent = displayEmotion.charAt(0).toUpperCase() + displayEmotion.slice(1);
-
-                // Re-trigger animation
-                resultBox.style.animation = 'none';
-                resultBox.offsetHeight; /* trigger reflow */
-                resultBox.style.animation = null; 
-            } catch (err) {
-                 console.error("Inference error:", err);
-                 alert("Hmm, something went wrong while analyzing the emotion.");
-            } finally {
-                 // Restore button state
-                 submitBtn.disabled = false;
-                 submitBtn.innerHTML = 'Analyze Emotion <i class="fas fa-magic"></i>';
             }
+            if (maxScore === 0) maxEmotion = 'neutral';
+
+            // Updating UI dynamically
+            const resultBox = document.getElementById('resultBox');
+            const emotionIcon = document.getElementById('emotionIcon');
+            const predictionText = document.getElementById('predictionText');
+
+            resultBox.style.display = 'flex';
+            
+            let iconHtml = '<i class="fas fa-meh-blank"></i>';
+            let color = '#95a5a6';
+
+            if (maxEmotion === 'happy') {
+                iconHtml = '<i class="fas fa-smile-beam"></i>';
+                color = '#ffcc00';
+            } else if (maxEmotion === 'sad') {
+                iconHtml = '<i class="fas fa-sad-tear"></i>';
+                color = '#3498db';
+            } else if (maxEmotion === 'angry') {
+                iconHtml = '<i class="fas fa-angry"></i>';
+                color = '#e74c3c';
+            } else if (maxEmotion === 'fear') {
+                iconHtml = '<i class="fas fa-flushed"></i>';
+                color = '#8e44ad';
+            } else if (maxEmotion === 'surprise') {
+                iconHtml = '<i class="fas fa-surprise"></i>';
+                color = '#f39c12';
+            }
+
+            emotionIcon.innerHTML = iconHtml;
+            emotionIcon.style.color = color;
+            resultBox.style.borderLeftColor = color;
+            
+            predictionText.textContent = maxEmotion.charAt(0).toUpperCase() + maxEmotion.slice(1);
+
+            // Re-trigger animation
+            resultBox.style.animation = 'none';
+            resultBox.offsetHeight; /* trigger reflow */
+            resultBox.style.animation = null; 
         });
     </script>
 </body>
