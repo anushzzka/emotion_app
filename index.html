@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,14 +9,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="glass-container">
         <h1>✨ Emotion Explorer ✨</h1>
         <form id="emotionForm">
-            <textarea id="textInput" placeholder="How are you feeling today? Pour your heart out here..." required></textarea>
+            <textarea id="textInput" placeholder="How are you feeling today? Pour your heart out here..."
+                required></textarea>
             <button type="submit">Analyze Emotion <i class="fas fa-magic"></i></button>
         </form>
-        
+
         <div id="resultBox" class="result">
             <span id="emotionIcon" class="emotion-icon"><i class="fas fa-meh-blank"></i></span>
             <div>
@@ -26,24 +29,29 @@
     </div>
 
     <script>
-        document.getElementById('emotionForm').addEventListener('submit', function(e) {
+        document.getElementById('emotionForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const text = document.getElementById('textInput').value.toLowerCase();
-            
+
             // Keyword libraries for naive emotion detection
-            const happyWords = ['happy', 'joy', 'excited', 'grateful', 'great', 'awesome', 'good', 'love', 'wonderful', 'amazing', 'smile', 'glad', 'cheerful', 'delighted', 'pleased', 'thrilled', 'content', 'blissful', 'radiant', 'optimistic', 'perfect', 'fantastic', 'fabulous', 'superb', 'excellent', 'stellar', 'positive', 'enjoy', 'laugh', 'ecstatic', 'sunshine', 'bright', 'sweet'];
-            const sadWords = ['sad', 'depressed', 'down', 'crying', 'unhappy', 'bad', 'miserable', 'heartbreak', 'lonely', 'tear', 'sorrow', 'grief', 'upset', 'gloomy', 'melancholy', 'weep', 'cry', 'devastated', 'hopeless', 'despair', 'blue', 'hurt', 'pain', 'broken', 'disheartened', 'tragic', 'loss', 'mourn', 'pity', 'disappointed', 'regret'];
-            const angryWords = ['angry', 'mad', 'furious', 'hate', 'annoyed', 'frustrated', 'rage', 'irritated', 'livid', 'enraged', 'outraged', 'fuming', 'irate', 'hostile', 'bitter', 'resentful', 'infuriated', 'pissed', 'wrath', 'agitated', 'provoked', 'bothered', 'disgusted', 'foul', 'spiteful', 'vengeful', 'aggravated'];
-            const fearWords = ['scared', 'fear', 'terrified', 'anxious', 'nervous', 'worried', 'panic', 'afraid', 'frightened', 'horrified', 'dread', 'terror', 'petrified', 'creepy', 'spooky', 'alarmed', 'stressed', 'uneasy', 'apprehensive', 'intimidated', 'trembling', 'shaking', 'paranoid', 'phobia', 'tense', 'threatened'];
-            const surprisedWords = ['surprised', 'shocked', 'amazed', 'wow', 'unexpected', 'unbelievable', 'astonished', 'astounded', 'startled', 'stunned', 'speechless', 'gasp', 'unpredictable', 'sudden', 'mind-blowing', 'dumbfounded', 'flabbergasted', 'whoa', 'unreal', 'miracle', 'bizarre', 'crazy', 'insane'];
+const happyWords = ['happy','joy','excited','grateful','great','awesome','good','love','wonderful','amazing','smile','glad','cheerful','delighted','pleased','thrilled','content','blissful','radiant','optimistic','perfect','fantastic','fabulous','superb','excellent','stellar','positive','enjoy','laugh','ecstatic','sunshine','bright','sweet',
+'fun','beautiful','charming','brilliant','hopeful','peaceful','satisfied','lucky','victory','winning','celebrate','celebration','yay','lovely','kind','friendly','warm','vibrant','grinning','cheery'];
+const sadWords = ['sad','depressed','down','crying','unhappy','bad','miserable','heartbreak','lonely','tear','sorrow','grief','upset','gloomy','melancholy','weep','cry','devastated','hopeless','despair','blue','hurt','pain','broken','disheartened','tragic','loss','mourn','pity','disappointed','regret',
+'empty','abandoned','tired','fatigue','neglected','isolated','dark','low','worthless','helpless','defeated','failure','suffering','ache','shattered','distressed','troubled','pathetic'];
+const angryWords = ['angry','mad','furious','hate','annoyed','frustrated','rage','irritated','livid','enraged','outraged','fuming','irate','hostile','bitter','resentful','infuriated','pissed','wrath','agitated','provoked','bothered','disgusted','foul','spiteful','vengeful','aggravated',
+'temper','explode','scream','shout','yell','argue','fight','hostility','revenge','offended','insulted','offensive','hateful','violent','mean','rough','rude'];
+const fearWords = ['scared','fear','terrified','anxious','nervous','worried','panic','afraid','frightened','horrified','dread','terror','petrified','creepy','spooky','alarmed','stressed','uneasy','apprehensive','intimidated','trembling','shaking','paranoid','phobia','tense','threatened',
+'unsafe','danger','risk','nightmare','disturbing','suspicious','worst','uncertain','insecure','alert','trauma','fearful','horror','shock','distress'];
+const surprisedWords = ['surprised','shocked','amazed','wow','unexpected','unbelievable','astonished','astounded','startled','stunned','speechless','gasp','unpredictable','sudden','mind-blowing','dumbfounded','flabbergasted','whoa','unreal','miracle','bizarre','crazy','insane',
+'incredible','extraordinary','strange','odd','weird','jaw-dropping','remarkable','surreal','unexpectedly','shocking','fantastical'];
 
             const scores = { happy: 0, sad: 0, angry: 0, fear: 0, surprise: 0 };
 
-            happyWords.forEach(w => { if(text.includes(w)) scores.happy++; });
-            sadWords.forEach(w => { if(text.includes(w)) scores.sad++; });
-            angryWords.forEach(w => { if(text.includes(w)) scores.angry++; });
-            fearWords.forEach(w => { if(text.includes(w)) scores.fear++; });
-            surprisedWords.forEach(w => { if(text.includes(w)) scores.surprise++; });
+            happyWords.forEach(w => { if (text.includes(w)) scores.happy++; });
+            sadWords.forEach(w => { if (text.includes(w)) scores.sad++; });
+            angryWords.forEach(w => { if (text.includes(w)) scores.angry++; });
+            fearWords.forEach(w => { if (text.includes(w)) scores.fear++; });
+            surprisedWords.forEach(w => { if (text.includes(w)) scores.surprise++; });
 
             let maxEmotion = 'neutral';
             let maxScore = 0;
@@ -62,7 +70,7 @@
             const predictionText = document.getElementById('predictionText');
 
             resultBox.style.display = 'flex';
-            
+
             let iconHtml = '<i class="fas fa-meh-blank"></i>';
             let color = '#95a5a6';
 
@@ -86,14 +94,15 @@
             emotionIcon.innerHTML = iconHtml;
             emotionIcon.style.color = color;
             resultBox.style.borderLeftColor = color;
-            
+
             predictionText.textContent = maxEmotion.charAt(0).toUpperCase() + maxEmotion.slice(1);
 
             // Re-trigger animation
             resultBox.style.animation = 'none';
             resultBox.offsetHeight; /* trigger reflow */
-            resultBox.style.animation = null; 
+            resultBox.style.animation = null;
         });
     </script>
 </body>
+
 </html>
